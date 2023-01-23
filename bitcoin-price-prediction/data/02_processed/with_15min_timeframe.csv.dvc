@@ -1,0 +1,4 @@
+outs:
+- md5: d0bd1aaaad7bc96592f94811b1301a1c
+  size: 15284380
+  path: with_15min_timeframe.csv

@@ -5,4 +5,8 @@
 
 bitcoin_historical_data:
   type: pandas.CSVDataSet
-  filepath: data/bitcoin_data/historical_price_1min.csv
+  filepath: data/01_raw_bitcoin_data/historical_price_1min.csv
+
+with_15min_timeframe:
+  type: pandas.CSVDataSet
+  filepath: data/02_processed/with_15min_timeframe.csv

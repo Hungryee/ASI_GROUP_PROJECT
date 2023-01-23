@@ -20,11 +20,5 @@ def timestamp_to_datetime_indexed(df: pd.DataFrame) -> pd.DataFrame:
 def convert_to_15min(df: pd.DataFrame) -> pd.DataFrame:
     df = df.groupby(pd.Grouper(freq='15min')).agg(
         {"Open": "first", "High": "max", "Low": "min", "Close": "last"})
+    df = df.reset_index()
     return df
-
-if __name__ == '__main__':
-    df = pd.read_csv('/Users/hungryee/PycharmProjects/ASI_GROUP_PROJECT/bitcoin-price-prediction/data/bitcoin_data/historical_price_1min.csv')
-    df = drop_unused(df)
-    df = timestamp_to_datetime_indexed(df)
-    df = convert_to_15min(df)
-    pass
