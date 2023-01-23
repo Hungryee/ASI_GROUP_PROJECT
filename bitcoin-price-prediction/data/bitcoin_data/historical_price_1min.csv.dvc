@@ -1,0 +1,4 @@
+outs:
+- md5: e3c5a5a01ee8fbbcfc824caf1df5a9e6
+  size: 317526599
+  path: historical_price_1min.csv
