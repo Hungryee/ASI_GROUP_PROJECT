@@ -5,4 +5,4 @@
 
 bitcoin_historical_data:
   type: pandas.CSVDataSet
-  filepath: /Users/hungryee/PycharmProjects/ASI_GROUP_PROJECT/asi-prj-s20205/data/bitcoin_data/historical_price_1min.csv
+  filepath: data/bitcoin_data/historical_price_1min.csv
