@@ -8,3 +8,12 @@ from kedro.pipeline import Pipeline, node, pipeline
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline([])
+
+#todo
+#dvc
+#kedro
+#ansible
+#fastapi
+#presentation
+
+# buil
