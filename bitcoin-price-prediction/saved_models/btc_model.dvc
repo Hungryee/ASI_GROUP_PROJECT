@@ -1,0 +1,5 @@
+outs:
+- md5: 4d2e758535874f16e96dd6e04c602060.dir
+  size: 2471319
+  nfiles: 5
+  path: btc_model
