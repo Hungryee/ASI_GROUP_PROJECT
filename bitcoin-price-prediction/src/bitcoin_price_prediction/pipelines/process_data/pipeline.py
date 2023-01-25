@@ -25,14 +25,19 @@ def create_pipeline(**kwargs) -> Pipeline:
             inputs='with_datetime',
             outputs='with_15min_timeframe',
             name='convert_to_15min_node'
+        ),
+        node(optuna_optimization,
+            inputs=['with_15min_timeframe'],
+            outputs='optuna_best_model'
         )
     ])
 
 #todo
 #--dvc
-#kedro
+#--kedro
+#--optuna
 #ansible
 #fastapi
 #presentation
 
-# buil
+# add: several models

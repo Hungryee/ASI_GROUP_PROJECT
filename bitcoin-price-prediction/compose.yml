@@ -1,0 +1,96 @@
+---
+version: "1.0"
+services:
+  &service app:
+    image: *service
+    build:
+      context: dockerd
+      args:
+        USERNAME: $USERNAME
+    environment:
+      PASSWORD: $PASSWORD
+    ports:
+      - mode: host
+        host_ip: 0.0.0.0
+        target: 22
+        published: 46022
+        protocol: tcp
+    networks:
+      - ci-cd
+    restart: always
+    hostname: *service
+    deploy:
+      replicas: 1
+    privileged: true
+
+  &registry-service registry:
+    image: registry:2.8.1
+    container_name: *registry-service
+    environment:
+      REGISTRY_HTTP_ADDR: 0.0.0.0:$REGISTRY_PORT
+    volumes:
+      - type: volume
+        source: &registry-volume registry
+        target: /var/lib/registry
+    ports:
+      - mode: host
+        host_ip: 0.0.0.0
+        target: $REGISTRY_PORT
+        published: 46010
+        protocol: tcp
+    hostname: *registry-service
+    networks:
+      - ci-cd
+    restart: always
+
+  &registry-certs-service registry-certs:
+    image: *registry-certs-service
+    build: registry-certs
+    container_name: *registry-certs-service
+    environment:
+      CERTS_DIR: $CERTS_DIR
+      CN: $PROXY_NAME
+    volumes:
+      - type: bind
+        source: certs
+        target: $CERTS_DIR
+    hostname: *registry-certs-service
+
+  &service registry-proxy:
+    image: *service
+    build:
+      context: registry-proxy
+      args:
+        PROXIED_HOST: *registry-service
+        PROXIED_PORT: $REGISTRY_PORT
+        SERVER_NAME: $PROXY_NAME
+    container_name: *service
+    volumes:
+      - type: bind
+        source: certs
+        target: $CERTS_DIR
+        read_only: true
+      - type: bind
+        source: auth
+        target: /auth
+        read_only: true
+    ports:
+      - mode: host
+        host_ip: 0.0.0.0
+        target: 443
+        published: 443
+        protocol: tcp
+    hostname: *service
+    networks:
+      - ci-cd
+    restart: always
+    depends_on:
+      *registry-certs-service:
+        condition: service_completed_successfully
+
+networks:
+  ci-cd:
+    external: true
+
+volumes:
+  *registry-volume:
