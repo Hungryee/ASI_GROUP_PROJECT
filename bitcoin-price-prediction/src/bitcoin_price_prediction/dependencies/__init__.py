@@ -1,1 +1,1 @@
-from .dependencies import create_variance_pipeline
+from .dependencies import create_pipeline

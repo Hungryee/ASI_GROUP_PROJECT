@@ -10,3 +10,7 @@ bitcoin_historical_data:
 with_15min_timeframe:
   type: pandas.CSVDataSet
   filepath: data/02_processed/with_15min_timeframe.csv
+
+optuna_best_model_results:
+  type: kedro.extras.datasets.json.JSONDataSet
+  filepath: saved_models/optuna_optimized.json

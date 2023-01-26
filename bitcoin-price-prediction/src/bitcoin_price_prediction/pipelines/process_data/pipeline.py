@@ -28,7 +28,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         ),
         node(optuna_optimization,
             inputs=['with_15min_timeframe'],
-            outputs='optuna_best_model'
+            outputs='optuna_best_model_results'
         )
     ])
 
@@ -36,7 +36,7 @@ def create_pipeline(**kwargs) -> Pipeline:
 #--dvc
 #--kedro
 #--optuna
-#ansible
+#--ansible
 #fastapi
 #presentation
 

@@ -14,7 +14,6 @@ from keras.losses import mean_squared_error
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
-
 def drop_unused(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop(columns=['Volume_(BTC)', 'Volume_(Currency)', 'Weighted_Price'])
     return df
@@ -86,7 +85,7 @@ def optuna_optimization(df: pd.DataFrame):
         model.fit(
             x_train,
             y_train,
-            epochs=5,
+            epochs=10,
             batch_size=BATCH_SIZE,
             shuffle=False,
             validation_split=0.1
@@ -110,8 +109,7 @@ def optuna_optimization(df: pd.DataFrame):
 
     study = optuna.create_study(direction='minimize',
                                 storage='sqlite:///trials.db')
-    study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=1)
 
     optuna_results = study.best_trial
-    print(optuna_results)
-    return optuna_results
+    return optuna_results.params
