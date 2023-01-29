@@ -4,7 +4,8 @@ services:
   &service app:
     image: *service
     build:
-      context: dockerd
+      context: ./
+      dockerfile: ./dockerd/Dockerfile
       args:
         USERNAME: $USERNAME
     environment:
@@ -13,7 +14,7 @@ services:
       - mode: host
         host_ip: 0.0.0.0
         target: 22
-        published: 46022
+        published: 2222
         protocol: tcp
     networks:
       - ci-cd
@@ -59,7 +60,8 @@ services:
   &service registry-proxy:
     image: *service
     build:
-      context: registry-proxy
+      context: ./
+      dockerfile: ./registry-proxy/Dockerfile
       args:
         PROXIED_HOST: *registry-service
         PROXIED_PORT: $REGISTRY_PORT

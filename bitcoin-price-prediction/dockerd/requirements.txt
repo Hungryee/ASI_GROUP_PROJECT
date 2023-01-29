@@ -1,13 +1,12 @@
-jupyter~=1.0
-kedro[pandas.CSVDataSet]~=0.18.3
+jupyter
+setuptools
+kedro
 kedro-telemetry
 pandas
-torch
-tensorflow
-seaborn
+# tensorflow
 scikit-learn
 fastapi
-uvicorn
+uvicorn[standard]
 ansible
 optuna
 websockets

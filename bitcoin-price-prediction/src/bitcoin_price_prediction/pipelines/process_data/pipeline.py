@@ -37,7 +37,7 @@ def create_pipeline(**kwargs) -> Pipeline:
 #--kedro
 #--optuna
 #--ansible
-#fastapi
+#--fastapi
 #presentation
 
 # add: several models
