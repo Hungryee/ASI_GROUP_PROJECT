@@ -10,3 +10,4 @@ ansible
 optuna
 websockets
 matplotlib
+wandb

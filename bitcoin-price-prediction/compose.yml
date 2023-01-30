@@ -13,8 +13,8 @@ services:
     ports:
       - mode: host
         host_ip: 0.0.0.0
-        target: 22
-        published: 2222
+        target: 80
+        published: 80
         protocol: tcp
     networks:
       - ci-cd
@@ -37,7 +37,7 @@ services:
       - mode: host
         host_ip: 0.0.0.0
         target: $REGISTRY_PORT
-        published: 46010
+        published: 5000
         protocol: tcp
     hostname: *registry-service
     networks:

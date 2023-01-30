@@ -27,10 +27,11 @@ formatter = logging.Formatter(
 
 ch.setFormatter(formatter)
 fh.setFormatter(formatter)
-logger.addHandler(ch) #Exporting logs to the screen
+logger.addHandler(ch)  # Exporting logs to the screen
 logger.addHandler(fh)
 
 templates = Jinja2Templates(directory="src/bitcoin_price_prediction/templates")
+
 
 async def log_reader(n=5):
     log_lines = []
@@ -43,6 +44,7 @@ async def log_reader(n=5):
             else:
                 log_lines.append(f"{line}<br/>")
         return log_lines
+
 
 @app.websocket("/ws/log")
 async def websocket_endpoint_log(websocket: starlette.websockets.WebSocket):
@@ -58,14 +60,25 @@ async def websocket_endpoint_log(websocket: starlette.websockets.WebSocket):
     finally:
         await websocket.close()
 
-@app.get('/run_pipeline')
-def get_result():
+"""
+# todo2 
+--serialize model into pkl
+--w&b weights and biases? register account...
+--restapi (== input test prediction data)
+ansible (maybe) - missing ssh server creation and key generation
+
+"""
+@app.post('/run_pipeline')
+def get_result(n_epochs: int):
     conf_loader = ConfigLoader("conf")
     conf_catalog = conf_loader.get("catalog.yml")
 
     pipeline = create_pipeline()
     logging.info('Setting up catalog')
     catalog = DataCatalog.from_config(conf_catalog)
+    catalog.add_feed_dict({
+        'user_n_epochs': n_epochs
+    }, replace=True)
     runner = SequentialRunner()
     runner.run(pipeline, catalog)
 

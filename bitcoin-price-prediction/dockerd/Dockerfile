@@ -1,16 +1,6 @@
 FROM python:3.8-slim
 
-#RUN apk update \
-#	&& apk add --no-cache \
-#		openssh-server \
-#		openssh-sftp-server \
-#        gcc g++ make automake python3-dev\
-#        shadow \
-#        sudo \
-#        py3-pip\
-#    && ssh-keygen -A
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y gcc python3-dev sshpass
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y gcc python3-dev sshpass openssh-server openssh-sftp-server && ssh-keygen -A
 COPY /dockerd/entrypoint.sh /app/tmp-entrypoint.sh
 RUN tr -d '\r' < /app/tmp-entrypoint.sh > /app/entrypoint.sh && rm /app/tmp-entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

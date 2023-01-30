@@ -3,10 +3,13 @@ This is a boilerplate pipeline 'process_data'
 generated using Kedro 0.18.3
 """
 import datetime
+import pickle
 
 import numpy as np
 import optuna
 import pandas as pd
+import wandb
+from wandb.keras import WandbCallback
 
 import tensorflow as tf
 from keras import layers
@@ -60,8 +63,12 @@ def prepare_for_learn(df: pd.DataFrame, SEQ_LEN: int):
     return X_train, y_train, X_test, y_test, scaler
 
 
-def optuna_optimization(df: pd.DataFrame):
+def optuna_optimization(df: pd.DataFrame, user_n_epochs: int):
+    N_TRIALS = 3
     def objective(trial: optuna.Trial):
+        EPOCHS = user_n_epochs
+        BATCH_SIZE = 1024
+        wandb.init(project="bitcoin-price-prediction", entity="asi_group2")
         input_shape = trial.suggest_int('input_shape', low=10, high=100)
         units = trial.suggest_int('units', low=10, high=100)
         dropout = trial.suggest_float('dropout', low=0.05, high=0.5)
@@ -79,36 +86,38 @@ def optuna_optimization(df: pd.DataFrame):
             loss='mean_squared_error',
             optimizer='adam'
         )
-
+        wandb.config = {
+            "learning_rate": model.optimizer.learning_rate,
+            "epochs": EPOCHS,
+            "batch_size":BATCH_SIZE
+        }
         x_train, y_train, x_test, y_test, scaler = prepare_for_learn(df, input_shape+1)
-        BATCH_SIZE = 1024
+
         model.fit(
             x_train,
             y_train,
-            epochs=10,
+            epochs=EPOCHS,
             batch_size=BATCH_SIZE,
             shuffle=False,
-            validation_split=0.1
+            validation_split=0.1,callbacks=[WandbCallback()]
         )
-        y_hat = model.predict(x_test)
-
-        y_test_inverse = scaler.inverse_transform(y_test)
-        y_hat_inverse = scaler.inverse_transform(y_hat)
-
-        plt.plot(y_test_inverse, label="Actual Price", color='green')
-        plt.plot(y_hat_inverse, label="Predicted Price", color='red')
-
-        plt.title('Bitcoin price prediction')
-        plt.xlabel('Time [days]')
-        plt.ylabel('Price')
-        plt.legend(loc='best')
-
         mse = model.evaluate(x_test, y_test)
+        #save each trial to a pickle file
+        with open("pkls/trials/{}.pickle".format(trial.number), "w+b") as fout:
+            pickle.dump(model, fout)
         return mse
 
     study = optuna.create_study(direction='minimize',
                                 storage='sqlite:///trials.db')
-    study.optimize(objective, n_trials=1)
+    study.optimize(objective, n_trials=N_TRIALS)
 
+    #load best model by trial number
+    with open("pkls/trials/{}.pickle".format(study.best_trial.number), "rb") as fin:
+        best_model = pickle.load(fin)
+
+    #save best_model to separate dir
+    with open("pkls/best_trial/{}.pickle".format(study.best_trial.number), "w+b") as fout:
+        pickle.dump(best_model, fout)
+    best_model.save('saved_models/btc_model')
     optuna_results = study.best_trial
     return optuna_results.params

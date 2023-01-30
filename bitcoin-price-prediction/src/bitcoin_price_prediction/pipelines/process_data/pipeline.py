@@ -27,7 +27,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             name='convert_to_15min_node'
         ),
         node(optuna_optimization,
-            inputs=['with_15min_timeframe'],
+            inputs=['with_15min_timeframe', 'user_n_epochs'],
             outputs='optuna_best_model_results'
         )
     ])
