@@ -11,4 +11,4 @@ cd /app/
 #ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future pip install -r requirements.txt
 
 #dockerd-entrypoint.sh --host=tcp://127.0.0.1:2375
-uvicorn src.bitcoin_price_prediction.api:app
+uvicorn src.bitcoin_price_prediction.api:app --host 0.0.0.0 --port 80

@@ -25,5 +25,5 @@ RUN useradd -m "$USERNAME" \
 	&& echo "$USERNAME"' ALL=(ALL:ALL) ALL' >> /etc/sudoers
 
 ENV USERNAME="$USERNAME"
-
+ENV PYTHONPATH=/app/src
 ENTRYPOINT ["/app/entrypoint.sh"]

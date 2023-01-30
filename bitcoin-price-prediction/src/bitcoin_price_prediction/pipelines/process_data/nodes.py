@@ -103,7 +103,6 @@ def optuna_optimization(df: pd.DataFrame):
         plt.ylabel('Price')
         plt.legend(loc='best')
 
-        plt.show()
         mse = model.evaluate(x_test, y_test)
         return mse
 

@@ -59,7 +59,7 @@ async def websocket_endpoint_log(websocket: starlette.websockets.WebSocket):
         await websocket.close()
 
 @app.get('/run_pipeline')
-def get_result() -> dict[str,str]:
+def get_result():
     conf_loader = ConfigLoader("conf")
     conf_catalog = conf_loader.get("catalog.yml")
 
