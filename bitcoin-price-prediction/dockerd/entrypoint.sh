@@ -9,4 +9,4 @@ mkdir /var/run/sshd
 
 cd /app/
 
-uvicorn src.bitcoin_price_prediction.api:app --proxy-headers
+uvicorn src.bitcoin_price_prediction.api:app --proxy-headers --host 0.0.0.0 --port 80

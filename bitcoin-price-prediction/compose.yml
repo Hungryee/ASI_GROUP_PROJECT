@@ -37,7 +37,7 @@ services:
       - mode: host
         host_ip: 0.0.0.0
         target: $REGISTRY_PORT
-        published: 5000
+        published: 5001
         protocol: tcp
     hostname: *registry-service
     networks:

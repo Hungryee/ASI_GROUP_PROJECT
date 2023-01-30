@@ -3,6 +3,7 @@ kedro
 kedro-telemetry
 pandas
 tensorflow
+tensorflow-io
 scikit-learn
 fastapi
 uvicorn[standard]
