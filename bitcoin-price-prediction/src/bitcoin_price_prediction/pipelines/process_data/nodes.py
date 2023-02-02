@@ -15,7 +15,9 @@ import tensorflow as tf
 from keras import layers
 from keras.losses import mean_squared_error
 from matplotlib import pyplot as plt
+from pycaret.time_series import *
 from sklearn.preprocessing import MinMaxScaler
+
 
 def drop_unused(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop(columns=['Volume_(BTC)', 'Volume_(Currency)', 'Weighted_Price'])
@@ -63,8 +65,33 @@ def prepare_for_learn(df: pd.DataFrame, SEQ_LEN: int):
     return X_train, y_train, X_test, y_test, scaler
 
 
-def optuna_optimization(df: pd.DataFrame, user_n_epochs: int):
+def pycaret_research(df: pd.DataFrame):
+    df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+    df = df.set_index(keys='Timestamp').fillna(axis=0, method='ffill')
+    s = setup(df, fh=3, fold=5, target='Close', numeric_imputation_target='mean', numeric_imputation_exogenous='mean',
+              session_id=123)
+    best = compare_models()
+    plot_model(best, plot='forecast', data_kwargs={'fh': 24})
+
+    return best
+
+
+def get_model_with_params(dropout, input_shape, units):
+    model = tf.keras.Sequential()
+    model.add(layers.LSTM(units=units, return_sequences=False,
+                          input_shape=(input_shape, 1), dropout=dropout))
+    model.add(layers.Dense(units=1))
+    model.summary()
+    model.compile(
+        loss='mean_squared_error',
+        optimizer='adam'
+    )
+    return model
+
+
+def optuna_optimization(df: pd.DataFrame, user_n_epochs: int = 1):
     N_TRIALS = 3
+
     def objective(trial: optuna.Trial):
         EPOCHS = user_n_epochs
         BATCH_SIZE = 1024
@@ -73,25 +100,13 @@ def optuna_optimization(df: pd.DataFrame, user_n_epochs: int):
         units = trial.suggest_int('units', low=10, high=100)
         dropout = trial.suggest_float('dropout', low=0.05, high=0.5)
 
-        model = tf.keras.Sequential()
-        model.add(layers.LSTM(units=units, return_sequences=False,
-                              input_shape=(input_shape, 1), dropout=dropout))
-        # model.add(layers.LSTM(units=units, return_sequences=True,
-        #                       dropout=0.2))
-        # model.add(layers.LSTM(units=units//2, dropout=dropout))
-        model.add(layers.Dense(units=1))
-        model.summary()
-
-        model.compile(
-            loss='mean_squared_error',
-            optimizer='adam'
-        )
+        model = get_model_with_params(dropout, input_shape, units)
         wandb.config = {
             "learning_rate": model.optimizer.learning_rate,
             "epochs": EPOCHS,
-            "batch_size":BATCH_SIZE
+            "batch_size": BATCH_SIZE
         }
-        x_train, y_train, x_test, y_test, scaler = prepare_for_learn(df, input_shape+1)
+        x_train, y_train, x_test, y_test, scaler = prepare_for_learn(df, input_shape + 1)
 
         model.fit(
             x_train,
@@ -99,10 +114,10 @@ def optuna_optimization(df: pd.DataFrame, user_n_epochs: int):
             epochs=EPOCHS,
             batch_size=BATCH_SIZE,
             shuffle=False,
-            validation_split=0.1,callbacks=[WandbCallback()]
+            validation_split=0.1, callbacks=[WandbCallback()]
         )
         mse = model.evaluate(x_test, y_test)
-        #save each trial to a pickle file
+        # save each trial to a pickle file
         with open("pkls/trials/{}.pickle".format(trial.number), "w+b") as fout:
             pickle.dump(model, fout)
         return mse
@@ -111,13 +126,14 @@ def optuna_optimization(df: pd.DataFrame, user_n_epochs: int):
                                 storage='sqlite:///trials.db')
     study.optimize(objective, n_trials=N_TRIALS)
 
-    #load best model by trial number
+    # load best model by trial number
     with open("pkls/trials/{}.pickle".format(study.best_trial.number), "rb") as fin:
         best_model = pickle.load(fin)
 
-    #save best_model to separate dir
+    # save best_model to separate dir
     with open("pkls/best_trial/{}.pickle".format(study.best_trial.number), "w+b") as fout:
         pickle.dump(best_model, fout)
     best_model.save('saved_models/btc_model')
-    optuna_results = study.best_trial
-    return optuna_results.params
+
+    optuna_results = study.best_trial.params
+    return optuna_results

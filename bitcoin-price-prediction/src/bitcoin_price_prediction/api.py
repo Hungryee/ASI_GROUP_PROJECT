@@ -12,7 +12,9 @@ from websocket import WebSocket
 from fastapi.templating import Jinja2Templates
 from bitcoin_price_prediction.dependencies import create_pipeline
 from kedro.runner import SequentialRunner
-
+from pydantic import BaseModel
+from bitcoin_price_prediction.pipelines.process_data.nodes import get_model_with_params
+import numpy as np
 app = FastAPI()
 import logging
 
@@ -68,21 +70,28 @@ async def websocket_endpoint_log(websocket: starlette.websockets.WebSocket):
 ansible (maybe) - missing ssh server creation and key generation
 
 """
+
+class PreviousData(BaseModel):
+    data: list[float]
+
 @app.post('/run_pipeline')
-def get_result(n_epochs: int):
+def get_result(previous_data: PreviousData):
     conf_loader = ConfigLoader("conf")
     conf_catalog = conf_loader.get("catalog.yml")
 
     pipeline = create_pipeline()
     logging.info('Setting up catalog')
     catalog = DataCatalog.from_config(conf_catalog)
-    catalog.add_feed_dict({
-        'user_n_epochs': n_epochs
-    }, replace=True)
+
     runner = SequentialRunner()
     runner.run(pipeline, catalog)
 
-    return catalog.load('optuna_best_model_results')
+    best_model_params = catalog.load('optuna_best_model_results')
+    model = get_model_with_params(best_model_params['dropout'],
+                                  len(previous_data.data),
+                                  best_model_params['units'])
+
+    return str(model.predict([np.array(previous_data.data).reshape(1,len(previous_data.data))]))
 
 
 @app.get('/logs', response_class=HTMLResponse)

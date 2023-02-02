@@ -12,3 +12,5 @@ optuna
 websockets
 matplotlib
 wandb
+pycaret==3.0.0rc4
+pydantic
